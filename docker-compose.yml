@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27018:27017"
+    networks:
+      - backend
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express:latest
+    restart: always
+    ports:
+      - "8081:8081"
+    links:
+      - mongo
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+  app:
+    container_name: books-crud
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    restart: always
+    env_file: .env
+    expose:
+      - ${PORT}
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017/books-crud
+    links:
+      - mongo
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
